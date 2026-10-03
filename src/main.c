@@ -42,7 +42,7 @@ int main(void) {
         n=lookup_note(k,modern);
         last_key=k;last_note=n;++event_count;
 #ifndef DIAGNOSTIC
-        if(n!=NO_NOTE) {
+        if(n!=NO_NOTE && (!release_supported || key_down)) {
             active=1;
 #ifndef SPEAKER_ONLY
             if(output) {

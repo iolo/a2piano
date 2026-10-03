@@ -1,6 +1,7 @@
 .setcpu "6502"
 .include "timing.inc"
 .importzp ptr1
+.import _release_supported, _held_key, _pending_key
 .export _mb_init, _mb_play, _mb_period
 .segment "BSS"
 mb_page: .res 1
@@ -105,6 +106,8 @@ _mb_play:
     lda #10                 ; Fixed volume, envelope bit clear.
     jsr ay_write
 @poll:
+    lda _release_supported
+    bne @held
     bit $c000
     bmi @stop
     ldy #$0d
@@ -115,6 +118,17 @@ _mb_play:
     lda (ptr1),y             ; Clear T1 interrupt flag without enabling IRQ.
     dec mb_ticks
     bne @poll
+    beq @stop
+@held:
+    lda $c000
+    and #$7f
+    cmp _held_key
+    bne @new_key
+    bit $c010               ; AKD; discard same-code auto-repeat strobes.
+    bmi @poll
+    bpl @stop
+@new_key:
+    sta _pending_key        ; Preserve events across the C000/C010 read race.
 @stop:
     ldx #8
     lda #0

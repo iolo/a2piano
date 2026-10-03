@@ -13,10 +13,12 @@ local f=assert(io.open(out..'/events.csv','w'));f:write('kind,time,a,b\n')
 local function time() return machine.time:as_double() end
 local function log(kind,a,b) f:write(string.format('%s,%.12f,%d,%d\n',kind,time(),a or 0,b or 0)) end
 local taps={};local pending=nil;local index=1;local stage='boot';local nexttime=12
+local held_code=0;local held_until=0
 local function tapread(a,b,name,fn) table.insert(taps,s:install_read_tap(a,b,name,fn)) end
 local function tapwrite(a,b,name,fn) table.insert(taps,s:install_write_tap(a,b,name,fn)) end
-local function inject(k)
+local function inject(k,duration)
  assert(not pending,'previous strobe unconsumed')
+ held_code=k;held_until=time()+(duration or 0.1)
  pending=k;log('latch',k,index)
 end
 local function snapshot()
@@ -35,8 +37,11 @@ local function snapshot()
  raw:close();sf:close();machine.screens[':screen']:snapshot(out..'/screen.png')
 end
 local function install()
- tapread(0xc000,0xc000,'keyboard',function(a,d) if pending then return pending+128 end end)
- tapread(0xc010,0xc010,'strobe',function() if pending then log('consume',pending);pending=nil end end)
+ tapread(0xc000,0xc000,'keyboard',function() return pending and pending+128 or held_code end)
+ tapread(0xc010,0xc010,'strobe',function()
+  if pending then log('consume',pending);pending=nil end
+  return held_code+(held_until>0 and 128 or 0)
+ end)
  tapread(0xc030,0xc030,'speaker',function() log('speaker',s:read_u8(labels._last_note),s:read_u8(labels._event_count)) end)
  tapwrite(0xc100,0xc7ff,'slot-write',function(a,d)log('io-write',a,d)end)
  tapread(0xc100,0xc7ff,'slot-read',function(a,d)
@@ -55,6 +60,9 @@ local function install()
 end
 local function step()
  local now=time()
+ if held_until>0 and now>=held_until then
+  held_until=0;log('release',held_code)
+ end
  if now<nexttime then return end
  if stage=='boot' then
   assert(now<30,'boot prompt timeout')
@@ -68,14 +76,15 @@ local function step()
  elseif stage=='ready' then
   assert(now<25,'startup never reached ready')
   if s:read_u8(labels._ready)~=1 then return end
+  assert(s:read_u8(labels._release_supported)==(emu.romname()=='apple2p' and 0 or 1),'AKD model detection')
   snapshot();log('ready');stage='notes';index=1;nexttime=now+0.2
  elseif stage=='notes' then
   if index<=#config.keys then
-   inject(config.keys[index]);index=index+1;nexttime=now+0.7
+   inject(config.keys[index],0.5);index=index+1;nexttime=now+0.7
   else stage='interrupt';index=1;nexttime=now+0.1 end
  elseif stage=='interrupt' then
   if index<=#config.interrupt then
-   inject(config.interrupt[index]);index=index+1;nexttime=now+0.05
+   inject(config.interrupt[index],0.025);index=index+1;nexttime=now+0.05
   else stage='finish';nexttime=now+0.7 end
  elseif stage=='finish' then
   assert(s:read_u8(labels._active)==0,'stuck active')

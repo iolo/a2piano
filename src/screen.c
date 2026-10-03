@@ -47,7 +47,8 @@ void draw_piano(unsigned char modern,unsigned char output,unsigned char slot) {
     text(0,18,"   ");
     text(0,19,modern?"TAB=A3":"ESC=A3  LEFT=E5  RIGHT=F5");
     if(!modern) {text(33,18," L  R ");}
-    text(0,20,"SPACE: STOP   ANY KEY ENDS CURRENT NOTE");
-    text(0,21,"ONE NOTE AT A TIME / MAX 0.5 SECOND");
+    text(0,20,"SPACE: STOP / ONE NOTE AT A TIME");
+    text(0,21,release_supported?"HOLD: PLAY / RELEASE ALL KEYS: STOP":
+                               "ONE NOTE AT A TIME / MAX 0.5 SECOND");
     text(0,23,"NORMAL SPEED (1 MHZ) / RESET TO SETUP");
 }

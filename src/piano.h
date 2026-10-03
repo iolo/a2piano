@@ -15,5 +15,6 @@ extern unsigned int mb_period;
 void speaker_play(void);
 extern unsigned char speaker_outer, speaker_inner;
 extern unsigned int speaker_count;
+extern unsigned char release_supported, key_down;
 extern volatile unsigned char last_key, last_note, event_count, ready, active;
 #endif

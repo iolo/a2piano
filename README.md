@@ -16,9 +16,12 @@ command is needed.
    Mockingboard, press **M**, enter its installed slot **1–7**, then **Y**.
    Invalid slots are ignored. Esc at the slot prompt or any key other than Y
    at confirmation cancels to speaker. The program never searches for a card.
-3. Play the mapped keys. A note ends after at most about **500 ms** (a quarter
-   note at 120 BPM), or when any new key event arrives. A mapped key replaces
-   it; Space or an unassigned key leaves silence. Repeat events retrigger.
+3. Play the mapped keys. On a detected **Apple //e**, hold a key to sustain
+   its note and release all ordinary keys to stop. A different mapped key
+   replaces the note; Space or an unassigned key stops it. Automatic repeats
+   do not interrupt a held tone. This works with both sound outputs.
+   On II+ and machines without enabled release sensing, notes retain the
+   **500 ms** maximum duration and repeat events retrigger.
 
 The piano occupies 40×24 text page 1, with inverse white keys and normal black
 keys. The displayed range is intentionally A3–F5: 21 chromatic notes, 13 white
@@ -36,15 +39,22 @@ positions are corrected; the extra `2` binding is omitted.
 | A#3 C#4 D#4 F#4 G#4 A#4 | 1 4 5 7 8 9 | 1 4 5 7 8 9 |
 | C#5 D#5 | - = | : - |
 
-Uppercase and lowercase letters behave alike. There is no key-release sensor:
-a released key can continue to the timeout, and a held key follows your
-keyboard's repeat behavior (II+ uses REPT). Esc plays A3 in old layout; it is
-not an exit key. Reset the machine to change startup settings.
+Uppercase and lowercase letters behave alike. Release sensing uses the //e's
+**Any Key Down** flag, not individual key-up events. If you hold Q, press W,
+then release W while Q remains held, the W note continues until all keys are
+released; it cannot return automatically to Q. Shift, Control, Caps Lock, and
+the Apple keys do not count as ordinary held keys.
+
+Release sensing follows detected hardware, independently of the O/N layout
+choice. IIc is enabled by the same hardware identification but is untested;
+IIgs and unknown models retain timed notes. On II+, releasing a key can leave
+the note sounding until timeout (REPT retriggers). Esc plays A3 in old layout;
+it is not an exit key. Reset the machine to change startup settings.
 
 Use normal **1 MHz / NTSC-compatible** speed. On a IIgs, choose normal speed;
 on an accelerated system/emulator, disable acceleration. PAL timing, fast mode,
 physical cards, and other clone interfaces have not been validated. No chords,
-sustain, velocity, recording, tempo control, or live highlighting are included.
+sustain pedal, velocity, recording, tempo control, or live highlighting are included.
 
 ## Build
 
@@ -65,7 +75,7 @@ make clean           # deletes generated build/ artifacts and a2piano.po
 notes, assembly listings, linker map/labels, raw payload, catalog, and packaging
 manifest are saved in `build/`. Directory dates are canonicalized so repeated
 builds with the same toolchain produce identical disk bytes. The default
-image is 143,360 bytes in **ProDOS sector order**, with 208 free blocks.
+image is 143,360 bytes in **ProDOS sector order**, with 207 free blocks.
 
 For runtime acceptance, install MAME 0.285 and NumPy for the selected Python,
 and supply your own MAME ROM sets. The test runner copies the disk and isolates

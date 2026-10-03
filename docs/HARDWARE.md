@@ -27,11 +27,25 @@ alternate ROM/auxiliary banks selected is not supported. Only the keyboard
 family is needed: II+ is old, IIe/IIc/IIgs is new, unknown defaults old with an
 explicit choice. Original Apple II / Integer BASIC is outside release scope.
 
-The keyboard latch is read at $C000, acknowledged once through $C010, and
-masked to seven bits. Alphabetic case normalizes in C. There is no release
-inference. A playback routine returns with a new strobe still pending; the
-shared dispatcher consumes it once, then either starts a replacement or stays
-silent. Space and all unassigned events stop sound. Esc is a note in old layout.
+The keyboard latch is read at $C000, acknowledged through $C010, and masked
+to seven bits. Alphabetic case normalizes in C. Detection also sets
+`release_supported` for IIe/IIc ROM IDs; the IIgs carry-test path and unknown
+machines leave it disabled. Choosing a different O/N layout cannot change
+this hardware capability.
+
+On IIe/IIc, bit 7 of $C010 (AKD) stops a note when no ordinary key is held.
+The dispatcher saves AKD while acknowledging an event and skips already
+released notes. Playback compares the raw $C000 character against `held_key`
+before reading $C010, discarding same-code repeats without restarting sound.
+A different character is saved in `pending_key` for the dispatcher: this also
+preserves a new event whose strobe was cleared by an AKD read between polls.
+There is no 500 ms timeout in this mode. AKD excludes modifiers and Apple
+keys; overlapping keys sustain the last note until all ordinary keys are up.
+Individual releases and a return to an earlier held note cannot be inferred.
+
+II+ and other fallback machines retain the timed loop, returning with a new
+strobe pending. Space and unassigned events stop sound in both modes. Esc is
+a note in old layout.
 `last_key`, `last_note`, `event_count`, `ready`, and `active` are diagnostic
 symbols; their addresses are in the linker label file. They require no screen
 updates during audio.
@@ -47,7 +61,9 @@ A4=440 Hz and equal temperament. Every half-cycle has exactly:
 
 `delay_outer` is 0 or 1 and `delay_inner` is 1..255. The fixed 51 cycles include
 the speaker access, keyboard poll, balanced 16-bit decrement, and loop control.
-All branches remain on one page, enforced by a link-time assertion. The outer
+The separate AKD loop replaces the countdown with character comparison,
+release polling, and padding for exactly the same interval. Both loops' branches
+remain on one page, enforced by link-time assertions. The outer
 path adds 1284 cycles, including its alternate branch cost. Low-byte countdown
 wrap has no variable branch. Interrupts are masked during the note, and no C,
 ROM, disk, or screen work occurs in the loop. A new latch is tested every
@@ -55,7 +71,7 @@ half-period, at most about 2.28 ms apart. Returning without further $C030
 accesses is the speaker's silent state.
 
 `DURATION_MS` in `tools/generate_notes.py` is the single duration control,
-default 500 ms (one quarter note at 120 BPM). The half-cycle count is rounded
+default 500 ms for fallback machines (one quarter note at 120 BPM). The half-cycle count is rounded
 down so nominal playback does not exceed the limit. Timing quantization and
 emulator clocks are reported by the runtime measurements, not inferred solely
 from the formula. Bus captures validate every note and include countdown wraps.
@@ -76,14 +92,18 @@ so no envelope is used. Noise is disabled. The tone is `AY clock/(16*period)`
 with a 12-bit period and the documented nominal 1,022,727 Hz AY clock.
 
 The first VIA's T1 runs continuously in 10 approximately 50 ms periods. Its
-interrupt enable bits remain off; the application polls IFR and the keyboard,
-acknowledging T1 by reading its low counter. Stop paths set R8=0 before returning
+interrupt enable bits remain off; timed playback polls IFR and the keyboard,
+acknowledging T1 by reading its low counter. AKD playback instead polls the
+keyboard until a different character or release, ignoring timer expiry.
+Stop paths set R8=0 before returning
 and leave continuous timer mode. Pitch bytes are replaced while muted. No C
 rendering runs during playback. The application owns these VIA settings until
 machine reset; it does not promise to preserve another program's card state.
 
 ## Reviewed references
 
+- [Apple IIe Reference Manual](https://www.applelogic.org/files/AIIEREF.pdf),
+  keyboard section: $C010 AKD and its strobe-clearing side effect.
 - [cc65 Apple II runtime](https://cc65.github.io/doc/apple2.html), including
   AppleSingle, HIMEM, startup and language-card behavior.
 - Installed a2kit 4.4.2 CLI and `src/fs/prodos/directory.rs`, for disk packaging

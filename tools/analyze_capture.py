@@ -9,6 +9,7 @@ def analyze(path):
     meta=json.loads((path/'manifest.json').read_text())
     assert meta['sha256']==hashlib.sha256((ROOT/'a2piano.po').read_bytes()).hexdigest(),'stale capture'
     notes=json.loads((ROOT/'build/notes.json').read_text())['notes']
+    release_supported=meta['model']!='apple2p'
     scenario=json.loads((path/'scenario.json').read_text())
     rows=[dict(kind=r['kind'],t=float(r['time']),a=int(r['a']),b=int(r['b'])) for r in csv.DictReader((path/'events.csv').open())]
     assert rows[-1]['kind']=='finish'
@@ -37,7 +38,7 @@ def analyze(path):
         next_start=next((r for r in starts if r['b']==event['b']),None)
         if next_start:latencies.append(next_start['t']-latch['t'])
     for stop in stops[21:]:
-        previous=[r for r in latches if r['t']<=stop['t']]
+        previous=[r for r in play if (r['kind']=='latch' or (release_supported and r['kind']=='release')) and r['t']<=stop['t']]
         assert stop['t']-previous[-1]['t']<.020,('stop latency',stop)
     for a,b in zip(starts[:21],stops[:21]):assert .475<=b['t']-a['t']<=.525
     raw=(path/'screen.bin').read_bytes();assert len(raw)==960
@@ -101,11 +102,13 @@ def analyze(path):
         result=dict(note=notes[i]['label'],expected_hz=expected,audio_hz=freq,error_percent=error,duration_ms=1000*(stop['t']-start['t']))
         if not meta['slot']:
             toggles=[r['t'] for r in play if r['kind']=='speaker' and r['b']==i+1]
-            assert len(toggles)==notes[i]['toggles']
+            if not release_supported:assert len(toggles)==notes[i]['toggles']
             intervals=np.diff(toggles)
             result['toggle_hz']=1/(2*statistics.mean(intervals))
             result['jitter_us']=float(np.ptp(intervals)*1e6)
             assert result['jitter_us']<2
+            # MAME's clock differs slightly from the nominal table clock.
+            assert abs(result['toggle_hz']/notes[i]['speaker_hz']-1)<.002
         results.append(result)
     # Following every completed note there must be silence until the next latch.
     for stop in stops[:21]:

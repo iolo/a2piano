@@ -31,6 +31,7 @@ class Notes(unittest.TestCase):
     def test_memory_and_pages(self):
         labels={n:int(a,16) for a,n in re.findall(r'al ([0-9A-Fa-f]+) \.([\w_]+)',(ROOT/'build/a2piano.lbl').read_text())}
         self.assertEqual(labels['speaker_loop']//256,labels['speaker_end']//256)
+        self.assertEqual(labels['speaker_held_loop']//256,labels['speaker_held_end']//256)
         self.assertEqual(labels['__LC_LAST__'],0xd400) # no code behind ROM
         self.assertLess(labels['__MAIN_LAST__'],0x8e00)
         self.assertLess(labels['__BSS_RUN__']+labels['__BSS_SIZE__'],0x8e00)
