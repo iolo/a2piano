@@ -23,14 +23,14 @@ Use the following confirmed decisions and explicit planning assumptions. Keep th
 | Later machines and emulators may run faster. | Establish accurate playback at normal Apple II speed first. Use compatible normal-speed operation on accelerated machines/emulators; document unsupported speed configurations. |
 | Mockingboard “or clone” covers differing implementations. | Target a conventional Mockingboard-compatible VIA/AY register interface first. Name the tested card/emulator configuration; do not claim support for every clone. |
 
-Proposed key mapping, preserving the PRD's white-key sequence and as many black-key bindings as possible:
+Key mapping, following the revised PRD keyboard layout:
 
 | Notes in ascending order | IIe and later keys | II+ keys |
 | --- | --- | --- |
 | A3 B3 C4 D4 E4 F4 G4 A4 B4 C5 D5 E5 F5 | Tab Q W E R T Y U I O P [ ] | Esc Q W E R T Y U I O P Left Right |
-| A#3 C#4 D#4 F#4 G#4 A#4 C#5 D#5 | 1 4 5 7 8 9 - = | 1 4 5 7 8 9 : - |
+| A#3 C#4 D#4 F#4 G#4 A#4 C#5 D#5 | 1 3 4 6 7 8 0 - | 1 3 4 6 7 8 0 : |
 
-The diagram's `2` binding is omitted because the corrected range has only eight black keys. Normalize alphabetic case on later keyboards. Treat repeated key events as retriggers; do not attempt to infer key release. Verify the actual character codes for Tab, Esc, arrows, brackets, colon, minus, and equals on each keyboard profile.
+The revised diagram maps eight black keys to `1 3 4 6 7 8 0 -`, with `:` replacing `-` on the old keyboard. Normalize alphabetic case on later keyboards. Treat repeated key events as retriggers; do not attempt to infer key release. Verify the actual character codes for Tab, Esc, arrows, brackets, colon, and minus on each keyboard profile.
 
 ## Architecture
 

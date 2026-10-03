@@ -8,7 +8,7 @@ for tag,port in pairs(m.ioport.ports) do for name,field in pairs(port.fields) do
 f:flush()
 local modern=emu.romname()~='apple2p'
 local slot=tonumber(os.getenv('A2_MB_SLOT') or '0')
-local keys=modern and {9,49,81,87,52,69,53,82,84,55,89,56,85,57,73,79,45,80,61,91,93} or {27,49,81,87,52,69,53,82,84,55,89,56,85,57,73,79,58,80,45,8,21}
+local keys=modern and {9,49,81,87,51,69,52,82,84,54,89,55,85,56,73,79,48,80,45,91,93} or {27,49,81,87,51,69,52,82,84,54,89,55,85,56,73,79,48,80,58,8,21}
 local held={}
 local function release() for _,v in ipairs(held)do v:clear_value()end;held={}end
 local nexttime=12;local stage=0;local index=1;local before=0

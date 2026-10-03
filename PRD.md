@@ -43,17 +43,17 @@ Simple Piano simulator for Old 8bit Apple II series of computers
 0         1         2
 0123456789012345678901234567890123456789 ; columns
 
-                                :  -     ; old keyboard
-  1  2     4  5     7  8  9     -  =     ; new keyboard
+                                 :       ; old keyboard
+   1     3  4     6  7  8     0  -       ; new keyboard
 ========================================
- |  |  | ||  |  | ||  |  |  | ||  |  | |
- |  |  | ||  |  | ||  |  |  | ||  |  | |
- |G#|A#| ||C#|D#| ||F#|G#|A#| ||D#|E#| | ; note for black keys
--+--+--+ |+--+--+ |+--+--+--+ |+--+--+ |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|A3|B3|C4|D4|E4|F4|G4|A5|B5|C5|D5|E5|F5| ; note for white keys
+  |  |: |  |  |: |  |  |  |: |  |  |: |
+  |  |: |  |  |: |  |  |  |: |  |  |: |
+  |A#|: |C#|D#|: |F#|G#|A#|: |D#|E#|: |  ; note for black keys
+--+--+: +--+--+: +--+--+--+: +--+--+: +-
+:  :  :  :  :  :  :  :  :  :  :  :  :  :
+:  :  :  :  :  :  :  :  :  :  :  :  :  :
+:A3:B3:C4:D4:E4:F4:G4:A5:B5:C5:D5:E5:F5: ; note for white keys
 +--+--+--+--+--+--+--+--+--+--+--+--+--+
 TAB Q  W  E  R  T  Y  U  I  O  P  [  ]   ; new keyboard
-ESC                               <- ->  ; old keyboard
+ESC                               ←  →   ; old keyboard
 ```

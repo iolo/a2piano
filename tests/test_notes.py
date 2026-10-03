@@ -17,8 +17,10 @@ class Notes(unittest.TestCase):
             keys=[r[field] for r in rows]
             self.assertEqual(len(set(keys)),21)
             self.assertNotIn(32,keys)
-        self.assertEqual([rows[i]['old_key'] for i in [0,16,18,19,20]],[27,58,45,8,21])
-        self.assertEqual([rows[i]['new_key'] for i in [0,16,18,19,20]],[9,45,61,91,93])
+        self.assertEqual([rows[i]['old_key'] for i in [0,19,20]],[27,8,21])
+        self.assertEqual([rows[i]['new_key'] for i in [0,19,20]],[9,91,93])
+        for field, expected in [('old_key', '1346780:'), ('new_key', '1346780-')]:
+            self.assertEqual(''.join(chr(r[field]) for r in rows if not r['white']),expected)
     def test_timing(self):
         for r in gen.rows():
             self.assertLess(abs(r['speaker_hz']/r['hz']-1),.01)

@@ -32,8 +32,8 @@ is louder than the earlier fixed-volume version.
 
 The piano occupies 40×24 text page 1, with inverse white keys and normal black
 keys. The displayed range is intentionally A3–F5: 21 chromatic notes, 13 white
-and 8 black keys. The PRD's A5/B5 labels are corrected to A4/B4 and black-key
-positions are corrected; the extra `2` binding is omitted.
+and 8 black keys. Bindings follow the revised PRD keyboard layout. Note labels
+use A4/B4 and C#5/D#5 to keep the A3–F5 chromatic sequence consistent.
 
 | White notes | IIe / later | II+ / old |
 |---|---|---|
@@ -43,8 +43,8 @@ positions are corrected; the extra `2` binding is omitted.
 
 | Black notes | IIe / later | II+ / old |
 |---|---|---|
-| A#3 C#4 D#4 F#4 G#4 A#4 | 1 4 5 7 8 9 | 1 4 5 7 8 9 |
-| C#5 D#5 | - = | : - |
+| A#3 C#4 D#4 F#4 G#4 A#4 | 1 3 4 6 7 8 | 1 3 4 6 7 8 |
+| C#5 D#5 | 0 - | 0 : |
 
 Uppercase and lowercase letters behave alike. Release sensing uses the //e's
 **Any Key Down** flag, not individual key-up events. If you hold Q, press W,

@@ -9,8 +9,8 @@ ENVELOPE_MS = 1000
 # AY envelope: 16 amplitude steps, 16 master clocks * period per step.
 ENVELOPE_PERIOD = round(AY_HZ * ENVELOPE_MS / 1000 / 256)
 LABELS = 'A3 A#3 B3 C4 C#4 D4 D#4 E4 F4 F#4 G4 G#4 A4 A#4 B4 C5 C#5 D5 D#5 E5 F5'.split()
-OLD = [27,49,81,87,52,69,53,82,84,55,89,56,85,57,73,79,58,80,45,8,21]
-NEW = [9,49,81,87,52,69,53,82,84,55,89,56,85,57,73,79,45,80,61,91,93]
+OLD = [27,49,81,87,51,69,52,82,84,54,89,55,85,56,73,79,48,80,58,8,21]
+NEW = [9,49,81,87,51,69,52,82,84,54,89,55,85,56,73,79,48,80,45,91,93]
 def rows():
     result=[]; white_col=0
     for i,label in enumerate(LABELS):
