@@ -1,0 +1,4 @@
+build/
+a2piano.po
+__pycache__/
+*.pyc
