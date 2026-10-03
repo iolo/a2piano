@@ -9,6 +9,7 @@ unsigned char lookup_note(unsigned char key, unsigned char modern);
 void clear_screen(void);
 void text(unsigned char x,unsigned char y,const char *s);
 void draw_piano(unsigned char modern,unsigned char output,unsigned char slot);
+void mark_note(unsigned char note,unsigned char playing);
 void __fastcall__ mb_init(unsigned char slot);
 void mb_play(void);
 extern unsigned int mb_period;

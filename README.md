@@ -35,6 +35,11 @@ keys. The displayed range is intentionally A3–F5: 21 chromatic notes, 13 white
 and 8 black keys. Bindings follow the revised PRD keyboard layout. Note labels
 use A4/B4 and C#5/D#5 to keep the A3–F5 chromatic sequence consistent.
 
+A `*` above the note label marks the active key. It moves to the new key when
+you change notes and clears on release, timeout, Space, or an unassigned key.
+On Mockingboard it stays visible while the key is held, even after the sound
+has faded. The marker preserves the white/black key colors.
+
 | White notes | IIe / later | II+ / old |
 |---|---|---|
 | A3 | Tab | Esc |
@@ -62,7 +67,7 @@ it is not an exit key. Reset the machine to change startup settings.
 Use normal **1 MHz / NTSC-compatible** speed. On a IIgs, choose normal speed;
 on an accelerated system/emulator, disable acceleration. PAL timing, fast mode,
 physical cards, and other clone interfaces have not been validated. No chords,
-sustain pedal, velocity, recording, tempo control, or live highlighting are included.
+sustain pedal, velocity, recording, or tempo control are included.
 
 ## Build
 

@@ -43,6 +43,7 @@ int main(void) {
         last_key=k;last_note=n;++event_count;
 #ifndef DIAGNOSTIC
         if(n!=NO_NOTE && (!release_supported || key_down)) {
+            mark_note(n,1);
             active=1;
 #ifndef SPEAKER_ONLY
             if(output) {
@@ -56,6 +57,7 @@ int main(void) {
             speaker_count=notes[n].toggles;
             speaker_play();
             }
+            mark_note(n,0);
             active=0;
         }
 #endif
