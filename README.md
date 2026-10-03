@@ -5,6 +5,9 @@ card), or a compatible later machine. Boot **[a2piano.po](a2piano.po)** in the
 first floppy drive. ProDOS 2.4.3 automatically launches the program; no `BRUN`
 command is needed.
 
+- [Instant Play on Apple2Ts](https://apple2ts.com/#https://raw.githubusercontent.com/iolo/a2piano/main/a2piano.po)
+- [Download ProDOS Disk Image](https://raw.githubusercontent.com/iolo/a2piano/main/a2piano.po) and Play on your Apple II
+
 ## Play
 
 1. Press **Return** for the detected keyboard layout, or **O** for the old II+
