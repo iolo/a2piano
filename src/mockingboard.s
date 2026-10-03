@@ -102,8 +102,19 @@ _mb_play:
     sta (ptr1),y             ; Start T1, clear previous flag.
     lda #MB_TICKS
     sta mb_ticks
+    ; Decimal registers 11..13 (octal R13..R15 in the GI manual).
+    ; One shared envelope is sufficient for our single channel/voice.
+    ldx #11
+    lda #<MB_ENVELOPE_PERIOD
+    jsr ay_write
+    ldx #12
+    lda #>MB_ENVELOPE_PERIOD
+    jsr ay_write
+    ldx #13
+    lda #0                  ; Shape 0: descend 15..0, then remain silent.
+    jsr ay_write            ; Every write restarts the envelope for a new note.
     ldx #8
-    lda #10                 ; Fixed volume, envelope bit clear.
+    lda #$10                ; Channel A follows the hardware envelope.
     jsr ay_write
 @poll:
     lda _release_supported

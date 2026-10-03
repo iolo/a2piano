@@ -21,6 +21,7 @@ void draw_piano(unsigned char modern,unsigned char output,unsigned char slot) {
     text(0,2,output?"OUTPUT: MOCKINGBOARD / SLOT ":"OUTPUT: INTERNAL SPEAKER");
     if(output) {slotstr[0]='0'+slot;slotstr[1]=0;text(28,2,slotstr);}
     text(0,3,modern?"LAYOUT: IIE / LATER":"LAYOUT: II+ / OLD KEYBOARD");
+    if(output) text(0,4,"TONE: DECAYING");
     text(0,5,"---------------------------------------");
     /* 13 contiguous white keys, each three cells wide. */
     for(i=0;i<NOTE_COUNT;++i) {

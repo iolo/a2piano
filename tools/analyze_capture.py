@@ -8,7 +8,8 @@ ROOT=Path(__file__).resolve().parents[1]
 def analyze(path):
     meta=json.loads((path/'manifest.json').read_text())
     assert meta['sha256']==hashlib.sha256((ROOT/'a2piano.po').read_bytes()).hexdigest(),'stale capture'
-    notes=json.loads((ROOT/'build/notes.json').read_text())['notes']
+    tuning=json.loads((ROOT/'build/notes.json').read_text())
+    notes=tuning['notes']
     release_supported=meta['model']!='apple2p'
     scenario=json.loads((path/'scenario.json').read_text())
     rows=[dict(kind=r['kind'],t=float(r['time']),a=int(r['a']),b=int(r['b'])) for r in csv.DictReader((path/'events.csv').open())]
@@ -68,8 +69,11 @@ def analyze(path):
                     idx=select[chip];assert idx<16;regs[chip][idx]=data[chip]
                     ay.append(dict(t=r['t'],chip=chip,reg=idx,value=data[chip]))
                     assert regs[chip][9]==regs[chip][10]==0,'extra AY voices'
-                    assert regs[chip][8] in [0,10],'envelope or unexpected volume'
-                    if regs[chip][8]:assert chip==0 and regs[chip][7]==62
+                    assert regs[chip][8] in [0,16],'unexpected volume mode'
+                    if regs[chip][8]:
+                        assert chip==0 and regs[chip][7]==62
+                        assert regs[chip][13]==0,'envelope must fall once, then hold zero'
+                        assert regs[chip][11]+256*regs[chip][12]==tuning['envelope_period']
         assert regs[0][8]==regs[1][8]==0,'unmuted final AY'
     # Actual first speaker transition / AY volume write includes the C dispatch
     # and parameter-copy overhead after the diagnostic active flag.
@@ -77,7 +81,9 @@ def analyze(path):
     for start,stop in zip(starts,stops):
         latch=latches[start['b']-1]
         if meta['slot']:
-            onset=next(r['t'] for r in ay if r['reg']==8 and r['value']==10 and start['t']<=r['t']<stop['t'])
+            onset=next(r['t'] for r in ay if r['reg']==8 and r['value']==16 and start['t']<=r['t']<stop['t'])
+            shapes=[r for r in ay if r['reg']==13 and start['t']<=r['t']<stop['t']]
+            assert len(shapes)==1 and shapes[0]['value']==0 and shapes[0]['t']<onset,'missing or repeated envelope restart'
         else:
             onset=next(r['t'] for r in play if r['kind']=='speaker' and r['b']==start['b'])
         sound_latencies.append(onset-latch['t'])
@@ -100,6 +106,13 @@ def analyze(path):
         error=100*(freq/expected-1)
         assert abs(error)<1,(i,expected,freq,error)
         result=dict(note=notes[i]['label'],expected_hz=expected,audio_hz=freq,error_percent=error,duration_ms=1000*(stop['t']-start['t']))
+        if meta['slot']:
+            levels=[]
+            for offset in [.03,.16,.29,.42]:
+                window=samples[int((start['t']+offset)*rate):int((start['t']+offset+.035)*rate),channel].astype(float)
+                levels.append(float(np.sqrt(np.mean((window-window.mean())**2))))
+            assert all(a>b*1.1 for a,b in zip(levels,levels[1:])),('volume did not decay',i,levels)
+            result['decay_rms']=levels
         if not meta['slot']:
             toggles=[r['t'] for r in play if r['kind']=='speaker' and r['b']==i+1]
             if not release_supported:assert len(toggles)==notes[i]['toggles']

@@ -23,6 +23,13 @@ command is needed.
    On II+ and machines without enabled release sensing, notes retain the
    **500 ms** maximum duration and repeat events retrigger.
 
+Mockingboard notes start with a strong attack and fade to silence in about
+one second, even while held. A new press restarts the decay; //e key release,
+Space, and unassigned keys still stop immediately. On II+, the existing
+500 ms limit can cut the decay short. The internal speaker keeps its steady
+tone. Mockingboard's hardware envelope starts at maximum volume, so its attack
+is louder than the earlier fixed-volume version.
+
 The piano occupies 40×24 text page 1, with inverse white keys and normal black
 keys. The displayed range is intentionally A3–F5: 21 chromatic notes, 13 white
 and 8 black keys. The PRD's A5/B5 labels are corrected to A4/B4 and black-key
@@ -41,8 +48,9 @@ positions are corrected; the extra `2` binding is omitted.
 
 Uppercase and lowercase letters behave alike. Release sensing uses the //e's
 **Any Key Down** flag, not individual key-up events. If you hold Q, press W,
-then release W while Q remains held, the W note continues until all keys are
-released; it cannot return automatically to Q. Shift, Control, Caps Lock, and
+then release W while Q remains held, the W note remains selected until all keys
+are released (its Mockingboard volume still decays); it cannot return
+automatically to Q. Shift, Control, Caps Lock, and
 the Apple keys do not count as ordinary held keys.
 
 Release sensing follows detected hardware, independently of the O/N layout

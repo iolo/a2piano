@@ -5,6 +5,9 @@ from pathlib import Path
 CPU_HZ = 1020484
 AY_HZ = 1022727
 DURATION_MS = 500
+ENVELOPE_MS = 1000
+# AY envelope: 16 amplitude steps, 16 master clocks * period per step.
+ENVELOPE_PERIOD = round(AY_HZ * ENVELOPE_MS / 1000 / 256)
 LABELS = 'A3 A#3 B3 C4 C#4 D4 D#4 E4 F4 F#4 G4 G#4 A4 A#4 B4 C5 C#5 D5 D#5 E5 F5'.split()
 OLD = [27,49,81,87,52,69,53,82,84,55,89,56,85,57,73,79,58,80,45,8,21]
 NEW = [9,49,81,87,52,69,53,82,84,55,89,56,85,57,73,79,45,80,61,91,93]
@@ -29,5 +32,7 @@ if __name__=='__main__':
     data=rows()
     fields=['old_key','new_key','white','column','delay_outer','delay_inner','toggles','ay_period']
     (out/'notes.c').write_text('#include "notes.h"\nconst Note notes[NOTE_COUNT] = {\n'+''.join('    {"'+r['label']+'", '+', '.join(str(r[f]) for f in fields)+'},\n' for r in data)+'};\n')
-    (out/'notes.json').write_text(json.dumps({'cpu_hz':CPU_HZ,'ay_hz':AY_HZ,'duration_ms':DURATION_MS,'notes':data},indent=2)+'\n')
-    (out/'timing.inc').write_text('; Generated, do not edit\nMB_TICKS = 10\nMB_TIMER = '+str(math.floor(CPU_HZ*DURATION_MS/10000)-2)+'\n')
+    (out/'notes.json').write_text(json.dumps({'cpu_hz':CPU_HZ,'ay_hz':AY_HZ,'duration_ms':DURATION_MS,
+        'envelope_ms':ENVELOPE_MS,'envelope_period':ENVELOPE_PERIOD,'notes':data},indent=2)+'\n')
+    (out/'timing.inc').write_text('; Generated, do not edit\nMB_TICKS = 10\nMB_TIMER = '+str(math.floor(CPU_HZ*DURATION_MS/10000)-2)+
+        '\nMB_ENVELOPE_PERIOD = '+str(ENVELOPE_PERIOD)+'\n')

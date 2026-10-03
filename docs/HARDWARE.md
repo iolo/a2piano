@@ -39,8 +39,10 @@ released notes. Playback compares the raw $C000 character against `held_key`
 before reading $C010, discarding same-code repeats without restarting sound.
 A different character is saved in `pending_key` for the dispatcher: this also
 preserves a new event whose strobe was cleared by an AKD read between polls.
-There is no 500 ms timeout in this mode. AKD excludes modifiers and Apple
-keys; overlapping keys sustain the last note until all ordinary keys are up.
+There is no 500 ms timeout in this mode. Mockingboard's envelope can reach
+silence while the key remains logically active, preventing auto-repeat from
+restarting a decayed note. AKD excludes modifiers and Apple keys; overlapping
+keys retain the last note until all ordinary keys are up.
 Individual releases and a return to an earlier held note cannot be inferred.
 
 II+ and other fallback machines retain the timed loop, returning with a new
@@ -87,8 +89,8 @@ range again. Other clones and nonstandard clocking are unverified.
 The first VIA is at $Cn00 and the second at $Cn80. DDRA=$FF, DDRB=$07. Port A
 carries register/data bytes; port B transitions 7→4 to latch, 6→4 to write, and
 0→4 to reset. Both AY chips reset silent. Only first-chip channel A is enabled:
-R7=$3E, R8=10, R9=R10=0; the second chip remains silent. Volume bit 4 is clear,
-so no envelope is used. Noise is disabled. The tone is `AY clock/(16*period)`
+R7=$3E, R8=$10, R9=R10=0; the second chip remains silent. Channel A uses the
+hardware envelope via volume bit 4. Noise is disabled. The tone is `AY clock/(16*period)`
 with a 12-bit period and the documented nominal 1,022,727 Hz AY clock.
 
 The first VIA's T1 runs continuously in 10 approximately 50 ms periods. Its
@@ -100,8 +102,48 @@ and leave continuous timer mode. Pitch bytes are replaced while muted. No C
 rendering runs during playback. The application owns these VIA settings until
 machine reset; it does not promise to preserve another program's card state.
 
+### Volume decay: hardware versus software
+
+| Approach | Implementation | Constraints |
+|---|---|---|
+| AY hardware envelope (selected) | Program a period and falling shape at note onset, then let the chip change amplitude. | One shared envelope per AY; 16 volume steps and fixed shapes; a falling envelope starts at maximum amplitude. |
+| Software volume decay | Use the VIA timer to write successive fixed levels to R8. | Requires periodic writes and decay state, but permits a custom curve, starting volume, and independent channel envelopes. |
+
+The hardware envelope is simpler for the current monophonic player. Its shared
+generator imposes no voice conflict here, and no volume-update loop is needed.
+This is a falling amplitude envelope, not a full ADSR synthesizer or sampled piano.
+
+Register names in General Instrument's manual use **octal**: amplitude R10–R12
+are decimal 8–10, and envelope R13–R15 are decimal 11–13. Code throughout this
+project uses decimal register indices. Decimal 14/15 are I/O ports, not envelope
+registers. On each note, while channel A is muted, the player writes:
+
+- R11/R12: fine/coarse envelope period, generated from `ENVELOPE_MS`.
+- R13=0: falling shape, 15 down to 0, then hold silence. Writing it retriggers
+  the envelope even when its value is unchanged.
+- R8=$10: enable envelope amplitude on channel A.
+
+`ENVELOPE_MS=1000` in `tools/generate_notes.py` produces period 3995 ($0F9B)
+at the nominal 1,022,727 Hz AY clock. The 16-step envelope cycle is
+`256 * period / AY_HZ`; adjacent steps are `16 * period / AY_HZ` apart.
+Shape 0 reaches zero after 15 steps, about 0.938 seconds, and stays there.
+The hardware's logarithmic amplitude levels make the falling sequence sound
+like a decay rather than a linear fade. Peak amplitude is 15, higher than the
+previous fixed level 10; hardware envelope mode cannot independently scale it.
+
+Same-code //e auto-repeat does not rewrite R13. A new note or a re-press after
+release starts a fresh decay. All stop paths still write R8=0 immediately;
+there is no release tail. II+ retains its 500 ms cap and repeat retriggering.
+The internal speaker backend has no volume-decay change.
+
 ## Reviewed references
 
+- [General Instrument AY-3-8910/8912 data manual](https://pub.intvprime.com/ba4ef/ie/Programming/AY-3-8910-8912-Programmable-Sound-Generator-Data-Manual.pdf),
+  amplitude control and envelope shape/period sections. Its register names use octal.
+- [MAME 0.285 AY implementation](https://github.com/mamedev/mame/blob/mame0285/src/devices/sound/ay8910.cpp),
+  16-step AY envelope, period timing, and shape-register retrigger behavior;
+  timing is additionally checked against captured audio rather than relying
+  on ambiguous divider wording in historical descriptions.
 - [Apple IIe Reference Manual](https://www.applelogic.org/files/AIIEREF.pdf),
   keyboard section: $C010 AKD and its strobe-clearing side effect.
 - [cc65 Apple II runtime](https://cc65.github.io/doc/apple2.html), including

@@ -29,7 +29,13 @@ if slot>0 then
  table.insert(taps,s:install_write_tap(0xc000+slot*256,0xc001+slot*256,'ay-volume',function(a,d)
   if a%256==1 then ay_data=d
   elseif d==7 then ay_register=ay_data
-  elseif d==6 and ay_register==8 then ay_volume=ay_data end
+  elseif d==6 then
+   if ay_register==8 then ay_volume=ay_data end
+   if ay_register==13 then
+    assert(ay_data==0,'unexpected envelope shape')
+    f:write(string.format('envelope start=%.12f\n',m.time:as_double()));f:flush()
+   end
+  end
  end))
 end
 end
@@ -60,14 +66,16 @@ local function step()
   index=index+1;stage=2;nexttime=now+.1
  elseif stage==5 then
   before=s:read_u8(labels._event_count)
+  f:write(string.format('held start=%.12f\n',now));f:flush()
   local q=modern and m.ioport.ports[':X1'].fields['q  Q'] or m.ioport.ports[':kbd:nkbd:X1'].fields['Q']
   q:set_value(1);table.insert(held,q)
   if not modern then local r=m.ioport.ports[':kbd:nkbd:keyb_repeat'].fields['Rept'];r:set_value(1);table.insert(held,r) end
   stage=6;nexttime=now+2
  elseif stage==6 then
-  assert(s:read_u8(labels._active)==1,'held key stopped sounding')
+  assert(s:read_u8(labels._active)==1,'held key tracking ended early')
   release()
   released_at=now
+  f:write(string.format('held release=%.12f\n',now));f:flush()
   local count=(s:read_u8(labels._event_count)-before)%256
   f:write('held repeat events='..count..'\n');f:flush()
   assert(modern and count==1 or not modern and count>=2,'incorrect auto-repeat behavior')
